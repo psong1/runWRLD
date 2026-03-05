@@ -28,6 +28,12 @@ export const REGISTER_USER = gql`
   }
 `;
 
+export const UPDATE_PASSWORD = gql`
+  mutation updatePassword($currentPassword: String!, $newPassword: String!) {
+    updatePassword(currentPassword: $currentPassword, newPassword: $newPassword)
+  }
+`;
+
 export const ADD_TRACK = gql`
   mutation addTrack($input: AddTrackInput!) {
     addTrack(input: $input) {

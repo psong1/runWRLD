@@ -32,12 +32,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-      <aside className="lg:col-span-1 space-y-6">
-        <div className="sticky top-24 space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <aside className="lg:col-span-2">
+        <div className="sticky top-24">
           <TrackSearch onSearchSuccess={handleSearchSuccess} />
+        </div>
+      </aside>
 
-          <div className="h-[calc(100vh-320px)] min-h-[450px]">
+      <aside className="lg:col-span-2 lg:row-start-2 space-y-6">
+        <div className="sticky top-24 space-y-6">
+          <div className="h-[calc(100vh-320px)] min-h-[400px]">
             {viewedTrack ? (
               <TrackProfile
                 track={viewedTrack}
@@ -54,8 +58,8 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      <section className="lg:col-span-3">
-        <div className="bg-white p-2 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden sticky top-24 h-[calc(100vh-160px)]">
+      <section className="lg:col-span-3 lg:row-start-2">
+        <div className="bg-white p-2 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden sticky top-24 h-[70vh] min-h-[320px] max-h-[700px]">
           <Map
             centerCoords={mapCenter}
             externalTracks={externalTracks}
@@ -64,7 +68,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section className="mt-4 flex items-center justify-between px-2">
+      <section className="mt-4 flex items-center justify-between px-2 lg:col-span-5">
         <div className="text-[10px] font-mono text-slate-400 uppercase tracking-tight">
           Location: {mapCenter.lat.toFixed(4)}N / {mapCenter.lng.toFixed(4)}W
         </div>

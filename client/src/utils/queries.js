@@ -26,7 +26,9 @@ export const GET_ME = gql`
       savedTracks {
         id
         name
-        address
+        streetAddress
+        city
+        state
       }
     }
   }

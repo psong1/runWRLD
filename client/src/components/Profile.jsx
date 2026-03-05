@@ -1,8 +1,20 @@
-import { useQuery } from "@apollo/client/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "@apollo/client/react";
 import { GET_ME } from "../utils/queries";
+import { UPDATE_PASSWORD } from "../utils/mutations";
 
-export default function Profile() {
+export default function Profile({ onSessionInvalid }) {
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+
   const { loading, error, data } = useQuery(GET_ME);
+  const [updatePassword, { error: updatePasswordError }] =
+    useMutation(UPDATE_PASSWORD);
 
   if (loading)
     return (
@@ -10,14 +22,46 @@ export default function Profile() {
         Loading Runner Profile...
       </div>
     );
-  if (error)
-    return (
-      <div className="text-red-500 bg-red-50 p-4 rounded-xl border border-red-100">
-        Error loading profile.
-      </div>
-    );
+  if (error) {
+    onSessionInvalid?.();
+    return null;
+  }
+  if (!data?.me) {
+    onSessionInvalid?.();
+    return null;
+  }
 
   const { username, email, savedTracks } = data.me;
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess(false);
+    if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters");
+      return;
+    }
+    try {
+      await updatePassword({
+        variables: {
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        },
+      });
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+      setPasswordSuccess(true);
+    } catch (err) {
+      setPasswordError(err?.message || "Failed to update password");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -36,6 +80,67 @@ export default function Profile() {
       <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
         <h3 className="text-xl font-bold mb-6 text-slate-900 flex items-center gap-2">
           <span className="w-2 h-6 bg-orange-600 rounded-full"></span>
+          Change Password
+        </h3>
+        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-sm">
+          <input
+            type="password"
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-600 outline-none"
+            placeholder="Current password"
+            value={passwordForm.currentPassword}
+            onChange={(e) =>
+              setPasswordForm({
+                ...passwordForm,
+                currentPassword: e.target.value,
+              })
+            }
+          />
+          <input
+            type="password"
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-600 outline-none"
+            placeholder="New password"
+            value={passwordForm.newPassword}
+            onChange={(e) =>
+              setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+            }
+          />
+          <input
+            type="password"
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-600 outline-none"
+            placeholder="Confirm new password"
+            value={passwordForm.confirmNewPassword}
+            onChange={(e) =>
+              setPasswordForm({
+                ...passwordForm,
+                confirmNewPassword: e.target.value,
+              })
+            }
+          />
+          {passwordError && (
+            <p className="text-red-600 text-sm font-medium">{passwordError}</p>
+          )}
+          {updatePasswordError && (
+            <p className="text-red-600 text-sm font-medium">
+              {updatePasswordError.message}
+            </p>
+          )}
+          {passwordSuccess && (
+            <p className="text-green-600 text-sm font-medium">
+              Password updated.
+            </p>
+          )}
+          <button
+            type="submit"
+            className="bg-slate-900 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Update Password
+          </button>
+        </form>
+      </div>
+
+      <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
+        <h3 className="text-xl font-bold mb-6 text-slate-900 flex items-center gap-2">
+          <span className="w-2 h-6 bg-orange-600 rounded-full"></span>
           Saved Tracks
         </h3>
 
@@ -49,7 +154,11 @@ export default function Profile() {
                 <h4 className="font-bold text-slate-800 group-hover:text-orange-600 transition-colors">
                   {track.name}
                 </h4>
-                <p className="text-xs text-slate-500 mt-1">{track.address}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {[track.streetAddress, track.city, track.state]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
                 <button className="mt-4 text-[10px] font-black uppercase text-slate-400 hover:text-red-500 transition-colors">
                   Remove Track
                 </button>

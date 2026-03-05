@@ -7,11 +7,19 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("id_token"),
   );
-  const [currentView, setCurrentView] = useState("discovery");
+  const [currentView, setCurrentView] = useState("discover");
+  const [loginError, setLoginError] = useState(null);
 
   const handleLogout = () => {
     localStorage.removeItem("id_token");
     setIsLoggedIn(false);
+    setLoginError(null);
+  };
+
+  const handleSessionInvalid = () => {
+    localStorage.removeItem("id_token");
+    setIsLoggedIn(false);
+    setLoginError("Session expired or invalid. Please log in again.");
   };
 
   if (!isLoggedIn) {
@@ -23,7 +31,14 @@ export default function App() {
           </h1>
           <span className="text-orange-600">WRLD</span>
         </header>
-        <Auth onLoginSuccess={() => setIsLoggedIn(true)} />
+        <Auth
+          onLoginSuccess={() => {
+            setLoginError(null);
+            setIsLoggedIn(true);
+          }}
+          loginError={loginError}
+          onClearLoginError={() => setLoginError(null)}
+        />
       </div>
     );
   }
@@ -31,7 +46,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="bg-white border-b border-slate-200 py-4 px-6 sticky top-0 z-[1000] shadow-sm">
-        <div className="max-w-7xl mx-auto flex justfiy-betwee items-center">
+        <div className="max-w-7xl mx-auto flex justfiy-between items-center">
           <h1
             className="text-2xl font-black tracking-tighter italic uppercase cursor-pointer"
             onClick={() => setCurrentView("discovery")}
@@ -39,7 +54,7 @@ export default function App() {
             run<span className="text-orange-600">WRLD</span>
           </h1>
 
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center justify-end gap-6 ml-auto">
             <button
               onClick={() => setCurrentView("discovery")}
               className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${currentView === "discovery" ? "text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
@@ -63,7 +78,11 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 px-8">
-        {currentView === "discovery" ? <DashBoard /> : <Profile />}
+        {currentView === "discover" ? (
+          <DashBoard />
+        ) : (
+          <Profile onSessionInvalid={handleSessionInvalid} />
+        )}
       </main>
     </div>
   );

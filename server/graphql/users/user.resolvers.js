@@ -18,7 +18,21 @@ export default {
 
   Mutation: {
     register: async (_, { input }) => {
-      const { username, email, password, firstName, lastName } = input;
+      const {
+        username,
+        email,
+        password,
+        confirmPassword,
+        firstName,
+        lastName,
+      } = input;
+
+      if (password !== confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+      if (password.length < 8) {
+        throw new Error("Password must be at least 8 characters");
+      }
 
       // Check if user already exists
       const existingUser = await User.findOne({
@@ -70,7 +84,11 @@ export default {
       const isValid = await bcrypt.compare(currentPassword, user.password);
       if (!isValid) throw new Error("Current password is incorrect");
 
-      user.password = hashed;
+      if (newPassword.length < 8) {
+        throw new Error("New password must be at least 8 characters");
+      }
+
+      user.password = await bcrypt.hash(newPassword, 10);
       await user.save();
       return true;
     },

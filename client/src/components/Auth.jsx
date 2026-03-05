@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
 import { LOGIN_USER, REGISTER_USER } from "../utils/mutations";
 
-export default function Auth({ onLoginSuccess }) {
+export default function Auth({
+  onLoginSuccess,
+  loginError: loginErrorMessage,
+  onClearLoginError,
+}) {
   const [isRegistered, setIsRegistered] = useState(true);
   const [formState, setFormState] = useState({
     firstName: "",
@@ -10,6 +14,7 @@ export default function Auth({ onLoginSuccess }) {
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [login, { error: loginError }] = useMutation(LOGIN_USER);
@@ -32,6 +37,9 @@ export default function Auth({ onLoginSuccess }) {
         const { token } = data.login;
         localStorage.setItem("id_token", token);
       } else {
+        if (formState.password !== formState.confirmPassword) {
+          return;
+        }
         const { data } = await register({ variables: { input: formState } });
         const { token } = data.register;
         localStorage.setItem("id_token", token);
@@ -49,7 +57,20 @@ export default function Auth({ onLoginSuccess }) {
           {isRegistered ? "Login" : "Register"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {loginErrorMessage && (
+          <div
+            className="mb-4 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm font-medium"
+            role="alert"
+          >
+            {loginErrorMessage}
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          onChange={() => onClearLoginError?.()}
+        >
           {!isRegistered && (
             <>
               <input
@@ -84,25 +105,45 @@ export default function Auth({ onLoginSuccess }) {
             }
           />
           <input
+            type="password"
             className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none"
             placeholder="Password"
             onChange={(e) =>
               setFormState({ ...formState, password: e.target.value })
             }
           />
+          {!isRegistered && (
+            <input
+              type="password"
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-red-600 outline-none"
+              placeholder="Confirm Password"
+              onChange={(e) =>
+                setFormState({ ...formState, confirmPassword: e.target.value })
+              }
+            />
+          )}
           <button className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-red-600 transition-colors shadow-lg">
             {isRegistered ? "Login" : "Register"}
           </button>
         </form>
 
-        {(loginError || registerError) && (
+        {loginError && (
           <p className="text-red-600 text-xs mt-4 font-bold uppercase">
-            Invalid credentials or user already exists
+            Invalid credentials.
+          </p>
+        )}
+
+        {registerError && (
+          <p className="text-red-600 text-xs mt-4 font-bold uppercase">
+            {registerError.message}
           </p>
         )}
 
         <button
-          onClick={() => setIsRegistered(!isRegistered)}
+          onClick={() => {
+            setIsRegistered(!isRegistered);
+            onClearLoginError?.();
+          }}
           className="w-full mt-6 text-sm text-slate-500 hover:text-red-600 font-medium transition-colors cursor-pointer"
         >
           {isRegistered

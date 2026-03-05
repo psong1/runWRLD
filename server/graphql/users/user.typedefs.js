@@ -23,6 +23,7 @@ export default gql`
     username: String!
     email: String!
     password: String!
+    confirmPassword: String!
   }
 
   extend type Query {
