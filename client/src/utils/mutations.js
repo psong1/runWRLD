@@ -63,3 +63,34 @@ export const ADD_REVIEW = gql`
     }
   }
 `;
+
+export const SAVE_TRACK = gql`
+  mutation saveTrack($trackId: ID!) {
+    saveTrack(trackId: $trackId) {
+      id
+      username
+      savedTracks {
+        id
+        name
+        streetAddress
+        city
+      }
+    }
+  }
+`;
+
+export const REMOVE_TRACK = gql`
+  mutation removeTrack($trackId: ID!) {
+    removeTrack(trackId: $trackId) {
+      id
+      username
+      savedTracks {
+        id
+        name
+        streetAddress
+        city
+        state
+      }
+    }
+  }
+`;

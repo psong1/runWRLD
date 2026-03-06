@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { GET_ME } from "../utils/queries";
-import { UPDATE_PASSWORD } from "../utils/mutations";
+import { UPDATE_PASSWORD, REMOVE_TRACK } from "../utils/mutations";
 
 export default function Profile({ onSessionInvalid }) {
   const [passwordForm, setPasswordForm] = useState({
@@ -16,20 +16,23 @@ export default function Profile({ onSessionInvalid }) {
   const [updatePassword, { error: updatePasswordError }] =
     useMutation(UPDATE_PASSWORD);
 
+  const [removeTrack, { error: removeTrackError }] = useMutation(REMOVE_TRACK, {
+    refetchQueries: [{ query: GET_ME }],
+  });
+
+  // Session invalid: call in useEffect so we don't update parent during render
+  useEffect(() => {
+    if (loading) return;
+    if (error || !data?.me) onSessionInvalid?.();
+  }, [loading, error, data?.me, onSessionInvalid]);
+
   if (loading)
     return (
       <div className="text-center py-20 animate-pulse text-slate-400 font-bold uppercase tracking-widest">
         Loading Runner Profile...
       </div>
     );
-  if (error) {
-    onSessionInvalid?.();
-    return null;
-  }
-  if (!data?.me) {
-    onSessionInvalid?.();
-    return null;
-  }
+  if (error || !data?.me) return null;
 
   const { username, email, savedTracks } = data.me;
 
@@ -60,6 +63,14 @@ export default function Profile({ onSessionInvalid }) {
       setPasswordSuccess(true);
     } catch (err) {
       setPasswordError(err?.message || "Failed to update password");
+    }
+  };
+
+  const handleRemoveTrack = async (trackId) => {
+    try {
+      await removeTrack({ variables: { trackId } });
+    } catch (err) {
+      console.error("Failed to remove track:", err);
     }
   };
 
@@ -154,14 +165,38 @@ export default function Profile({ onSessionInvalid }) {
                 <h4 className="font-bold text-slate-800 group-hover:text-orange-600 transition-colors">
                   {track.name}
                 </h4>
+
                 <p className="text-xs text-slate-500 mt-1">
                   {[track.streetAddress, track.city, track.state]
                     .filter(Boolean)
                     .join(", ")}
                 </p>
-                <button className="mt-4 text-[10px] font-black uppercase text-slate-400 hover:text-red-500 transition-colors">
-                  Remove Track
-                </button>
+
+                {/* Public / Private label */}
+                <p className="text-[10px] font-bold uppercase text-slate-400 mt-1">
+                  {track.isPublic ? "Public" : "Private"}
+                </p>
+
+                <div className="mt-4 flex gap-3">
+                  <button
+                    className="text-[10px] font-black uppercase text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                    onClick={() => handleRemoveTrack(track.id)}
+                  >
+                    Remove Track
+                  </button>
+
+                  <button
+                    className="text-[10px] font-black uppercase text-slate-400 hover:text-orange-600 transition-colors cursor-pointer"
+                    onClick={() =>
+                      window.open(
+                        `https://www.google.com/maps/dir/?api=1&destination=${track.lat},${track.lng}`,
+                        "_blank",
+                      )
+                    }
+                  >
+                    Get Directions
+                  </button>
+                </div>
               </div>
             ))}
           </div>

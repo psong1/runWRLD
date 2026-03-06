@@ -12,7 +12,7 @@ export default {
   Query: {
     me: async (_, __, context) => {
       if (!context.user) return null;
-      return await User.findById(context.user.id);
+      return await User.findById(context.user.id).populate("savedTracks");
     },
   },
 
@@ -88,7 +88,8 @@ export default {
         throw new Error("New password must be at least 8 characters");
       }
 
-      user.password = await bcrypt.hash(newPassword, 10);
+      // Assign plain password; User model pre-save hook hashes it (single hash)
+      user.password = newPassword;
       await user.save();
       return true;
     },

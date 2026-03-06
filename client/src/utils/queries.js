@@ -29,6 +29,8 @@ export const GET_ME = gql`
         streetAddress
         city
         state
+        lat
+        lng
       }
     }
   }

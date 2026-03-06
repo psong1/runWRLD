@@ -30,13 +30,47 @@ export default {
     addTrack: async (_, { input }, context) => {
       if (!context.user) throw new Error("Authentication required");
 
-      const { lat, lng, ...otherFields } = input;
+      const { lat, lng, name, ...otherFields } = input;
 
-      return await Track.create({
-        ...otherFields,
-        location: { type: "Point", coordinates: [lng, lat] },
-        addedBy: context.user.id,
+      let track = await Track.findOne({
+        "location.coordinates": [lng, lat],
+        name: name,
       });
+
+      if (!track) {
+        track = await Track.create({
+          name,
+          ...otherFields,
+          location: { type: "Point", coordinates: [lng, lat] },
+          addedBy: context.user.id,
+        });
+      }
+
+      await User.findByIdAndUpdate(context.user.id, {
+        $addToSet: { savedTracks: track._id },
+      });
+
+      return track;
+    },
+
+    saveTrack: async (_, { trackId }, context) => {
+      if (!context.user) throw new Error("Unauthorized");
+
+      return await User.findByIdAndUpdate(
+        context.user.id,
+        { $addToSet: { savedTracks: trackId } },
+        { new: true },
+      ).populate("savedTracks");
+    },
+
+    removeTrack: async (_, { trackId }, context) => {
+      if (!context.user) throw new Error("Authentication required");
+
+      return await User.findByIdAndUpdate(
+        context.user.id,
+        { $pull: { savedTracks: trackId } },
+        { new: true },
+      ).populate("savedTracks");
     },
 
     updateTrack: async (_, { input }, context) => {
@@ -89,6 +123,25 @@ export default {
   },
 
   Track: {
+    id: (parent) =>
+      parent._id
+        ? parent._id.toString()
+        : (parent.id?.toString?.() ?? parent.id),
+
+    surfaceType: (parent) => parent.surfaceType ?? "Unknown",
+
+    address: (parent) => {
+      const parts = [
+        parent.streetAddress,
+        parent.city,
+        parent.state,
+        parent.zipCode,
+      ].filter(Boolean);
+      return parts.join(", ") || "";
+    },
+    lat: (parent) => parent.location?.coordinates?.[1] ?? 0,
+    lng: (parent) => parent.location?.coordinates?.[0] ?? 0,
+
     addedBy: async (parent) => await User.findById(parent.addedBy),
 
     reviews: async (parent) => await Review.find({ track: parent.id }),

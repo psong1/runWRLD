@@ -49,27 +49,27 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex justfiy-between items-center">
           <h1
             className="text-2xl font-black tracking-tighter italic uppercase cursor-pointer"
-            onClick={() => setCurrentView("discovery")}
+            onClick={() => setCurrentView("discover")}
           >
             run<span className="text-orange-600">WRLD</span>
           </h1>
 
           <nav className="flex items-center justify-end gap-6 ml-auto">
             <button
-              onClick={() => setCurrentView("discovery")}
-              className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${currentView === "discovery" ? "text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
+              onClick={() => setCurrentView("discover")}
+              className={`text-[12px] font-bold uppercase tracking-widest transition-colors ${currentView === "discovery" ? "text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
             >
-              Discovery
+              Discover
             </button>
             <button
               onClick={() => setCurrentView("profile")}
-              className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${currentView === "profile" ? "text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
+              className={`text-[12px] font-bold uppercase tracking-widest transition-colors ${currentView === "profile" ? "text-orange-600" : "text-slate-400 hover:text-slate-600"}`}
             >
               Profile
             </button>
             <button
               onClick={handleLogout}
-              className="bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all"
+              className="bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 text-[12px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all"
             >
               Logout
             </button>

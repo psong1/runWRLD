@@ -1,33 +1,25 @@
 import { useState } from "react";
-import { useLazyQuery } from "@apollo/client/react";
-import { GET_NEARBY_TRACKS } from "../utils/queries.js";
 import { getCoordinates, findNearbyStadiums } from "../utils/geoUtils.js";
 
 export default function TrackSearch({ onSearchSuccess }) {
   const [address, setAddress] = useState("");
-
-  const [getTracks, { loading, data }] = useLazyQuery(GET_NEARBY_TRACKS);
+  const [loading, setLoading] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    const coordinates = await getCoordinates(address);
+    setLoading(true);
+    try {
+      const coordinates = await getCoordinates(address);
 
-    if (coordinates) {
-      onSearchSuccess?.(coordinates);
-      getTracks({
-        variables: {
-          lat: coordinates.lat,
-          lng: coordinates.lng,
-          radius: 10,
-        },
-      });
-
-      const nearbyStadiums = await findNearbyStadiums(
-        coordinates.lat,
-        coordinates.lng,
-      );
-
-      onSearchSuccess(coordinates, nearbyStadiums);
+      if (coordinates) {
+        const nearbyStadiums = await findNearbyStadiums(
+          coordinates.lat,
+          coordinates.lng,
+        );
+        onSearchSuccess?.(coordinates, nearbyStadiums);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,18 +52,6 @@ export default function TrackSearch({ onSearchSuccess }) {
       {loading && (
         <p className="mt-3 text-gray-500 text-sm">Loading tracks...</p>
       )}
-
-      <div className="mt-4">
-        {(data?.tracksNearby ?? []).map((track) => (
-          <div key={track.id} className="border-b border-gray-200 py-2">
-            <h3 className="font-bold">{track.name}</h3>
-            <p className="text-sm text-gray-600">
-              {[track.streetAddress, track.city].filter(Boolean).join(", ") ||
-                "-"}
-            </p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

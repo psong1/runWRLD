@@ -11,6 +11,7 @@ const trackSchema = new mongoose.Schema(
     city: String,
     state: String,
     zipCode: String,
+    surfaceType: { type: String, default: "Synthetic" },
     isPublic: { type: Boolean, default: false },
     lighting: { type: Boolean, default: false },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

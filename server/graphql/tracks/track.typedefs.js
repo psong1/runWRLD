@@ -17,6 +17,9 @@ export default gql`
     city: String!
     state: String!
     zipCode: String!
+    address: String!
+    lat: Float!
+    lng: Float!
     location: Location!
     surfaceType: String!
     isPublic: Boolean!
@@ -63,6 +66,14 @@ export default gql`
     lng: Float!
   }
 
+  input TrackInput {
+    id: ID!
+    name: String!
+    address: String!
+    lat: Float!
+    lng: Float!
+  }
+
   input UpdateTrackInput {
     id: ID!
     isPublic: Boolean
@@ -102,5 +113,9 @@ export default gql`
       status: String!
       description: String
     ): TrackStatusUpdate!
+
+    saveTrack(trackId: ID!): User!
+
+    removeTrack(trackId: ID!): User!
   }
 `;
