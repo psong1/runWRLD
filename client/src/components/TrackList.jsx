@@ -1,4 +1,4 @@
-export default function TrackList({ tracks, onAddTrack, onViewOnMap }) {
+export default function TrackList({ tracks, onSaveTrack, onViewOnMap }) {
   if (!tracks || tracks.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
@@ -45,7 +45,7 @@ export default function TrackList({ tracks, onAddTrack, onViewOnMap }) {
                   </button>
 
                   <button
-                    onClick={() => onAddTrack(track)}
+                    onClick={() => onSaveTrack(track)}
                     className="text-[10px] bg-orange-600 text-white px-3 py-1 rounded-full font-bold hover:bg-orange-700 transition-colors"
                   >
                     +
